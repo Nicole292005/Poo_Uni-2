@@ -1,166 +1,47 @@
-# Ampliación de Contenidos Audiovisuales
+# Proyecto de Gestión de Contenidos Audiovisuales
 
-Este proyecto es una ampliación de un sistema de gestión de contenidos audiovisuales desarrollado en Java, utilizando conceptos de Programación Orientada a Objetos (POO) como herencia, asociación y agregación. El objetivo es modelar diferentes tipos de contenidos audiovisuales y sus relaciones con otros elementos.
+Este proyecto es un sistema de gestión de contenidos audiovisuales desarrollado en Java, que utiliza la Programación Orientada a Objetos (POO) para modelar diferentes tipos de contenidos y sus relaciones.
+
+Originalmente enfocado en la modelación de clases, el proyecto ha sido ampliado para incluir **persistencia de datos**, permitiendo guardar el estado del sistema en archivos y cargarlo posteriormente. Además, se ha realizado una refactorización para aplicar principios de **código limpio**, mejorando la legibilidad, mantenibilidad y escalabilidad del sistema.
 
 ## Estructura del Proyecto
 
-El proyecto está organizado en paquetes:
+El proyecto está organizado en paquetes para una clara separación de responsabilidades:
 
-* **`uni1a`**: Contiene las clases principales del modelo de datos de los contenidos audiovisuales y sus entidades relacionadas.
-    * `ContenidoAudiovisual` (Clase abstracta base)
-    * `Pelicula`
-    * `SerieDeTV`
-    * `Documental`
-    * `Concierto` (Nueva en Etapa 4)
-    * `Podcast` (Nueva en Etapa 4)
-    * `Actor` (Entidad relacionada con Película)
-    * `Temporada` (Entidad relacionada con SerieDeTV)
-    * `Investigador` (Entidad relacionada con Documental)
-* **`poo`**: Contiene la clase principal para la ejecución y prueba del sistema.
-    * `PruebaAudioVisual`
+*   **`uni1a`**: Contiene las clases del **modelo de datos**.
+    *   `ContenidoAudiovisual` (Clase base abstracta)
+    *   `Pelicula`, `SerieDeTV`, `Documental`, `Concierto`, `Podcast` (Clases heredadas)
+    *   `Actor`, `Temporada`, `Investigador` (Clases de apoyo para las relaciones)
+*   **`poo`**: Contiene las clases de **lógica y ejecución**.
+    *   `PruebaAudioVisual`: Clase principal para la ejecución y demostración del sistema.
+    *   `GestorArchivos` (NUEVA): Clase de utilidad responsable de toda la lógica de lectura y escritura de archivos.
 
-## Clases y Relaciones
+## Funcionalidades Clave
 
-### Clases Base y Heredadas:
+### 1. Modelo de Datos Orientado a Objetos
+El sistema utiliza herencia, polimorfismo y composición para modelar las entidades:
+*   Una clase `ContenidoAudiovisual` abstracta define la base para todos los contenidos.
+*   Clases como `Pelicula`, `SerieDeTV`, etc., heredan de ella y añaden atributos y comportamientos específicos.
+*   Las relaciones de agregación y asociación se usan para vincular contenidos con otras entidades (ej. `Pelicula` con `Actor`, `SerieDeTV` con `Temporada`).
 
-* **`ContenidoAudiovisual` (Abstracta)**: Clase padre que define los atributos y comportamientos comunes para todos los tipos de contenido (título, duración, género, ID).
-* **`Pelicula`**: Hereda de `ContenidoAudiovisual`. Atributo adicional: `estudio`. Se asocia con `Actor`.
-* **`SerieDeTV`**: Hereda de `ContenidoAudiovisual`. Atributo adicional: `temporadas`. Agrega objetos `Temporada`.
-* **`Documental`**: Hereda de `ContenidoAudiovisual`. Atributo adicional: `tema`. Se asocia con `Investigador`.
-* **`Concierto`**: (NUEVA) Hereda de `ContenidoAudiovisual`. Atributos adicionales: `artistaPrincipal`, `lugar`. Agrega una lista de `cancionesInterpretadas`.
-* **`Podcast`**: (NUEVA) Hereda de `ContenidoAudiovisual`. Atributos adicionales: `host`, `numeroEpisodiosTotales`. Agrega una lista de `temasPrincipales`.
+### 2. Persistencia de Datos con Archivos CSV (NUEVO)
+Para que la información no se pierda al cerrar el programa, se ha implementado un sistema de guardado y carga de datos.
+*   **Escritura a CSV**: Cada objeto del modelo puede convertirse a una línea en formato CSV (`toCsvString()`). Las relaciones complejas (como una lista de actores) se serializan utilizando un delimitador secundario (`;`).
+*   **Lectura desde CSV**: Cada clase del modelo tiene un constructor que puede recibir una línea CSV y reconstruir el objeto con sus datos y relaciones.
+*   **Gestor Centralizado**: La clase `GestorArchivos` se encarga de orquestar el proceso, leyendo un archivo línea por línea, identificando el tipo de contenido y usando el constructor adecuado para instanciar el objeto correcto.
 
-### Clases de Apoyo (Relacionadas):
+### 3. Principios de Código Limpio Aplicados (Refactorización)
+Se ha mejorado la calidad del código aplicando los siguientes principios:
+*   **Nombres Claros**: Se han renombrado variables (ej. `contar` a `siguienteId`) para que su propósito sea autoevidente.
+*   **Separación de Responsabilidades**: La lógica de persistencia se ha extraído a la clase `GestorArchivos`, dejando las clases del modelo enfocadas en representar datos y las clases de prueba en demostrar la funcionalidad.
+*   **Constructores Específicos**: Se crearon constructores dedicados para la carga desde archivos, lo que evita la mezcla de lógicas y previene errores de inicialización de IDs.
 
-* **`Actor`**: Representa a un actor con `nombre` y `nacionalidad`. (Asociación con `Pelicula`)
-* **`Temporada`**: Representa una temporada de una serie con `numeroTemporada`, `numeroEpisodios` y una lista de `titulosEpisodios`. (Agregación con `SerieDeTV`)
-* **`Investigador`**: Representa a un investigador con `nombre` y `especialidad`. (Asociación con `Documental`)
+## Clases y Relaciones (Actualizado)
 
-## Diagrama de Clases (PlantUML)
+*   **`ContenidoAudiovisual` (Abstracta)**: Ahora incluye un constructor para cargar objetos con un ID preexistente desde un archivo y declara el método abstracto `toCsvString()`.
+*   **`Pelicula`**, **`SerieDeTV`**, **`Documental`**, **`Concierto`**, **`Podcast`**: Implementan `toCsvString()` y tienen un nuevo constructor para instanciarse desde una línea CSV, manejando la reconstrucción de sus listas de objetos asociados (`Actor`, `Temporada`, etc.).
+*   **`Actor`**, **`Temporada`**, **`Investigador`**: También han sido adaptadas para ser serializables a y desde una cadena de texto, facilitando su almacenamiento como parte de un objeto contenedor.
 
-```plantuml
-@startuml
-!theme plain
+## Diagrama de Clases
 
-abstract class ContenidoAudiovisual {
-    -static int contar
-    -String titulo
-    -int duracionEnMinutos
-    -String genero
-    -int id
-    +ContenidoAudiovisual(titulo: String, duracionEnMinutos: int, genero: String)
-    +getTitulo(): String
-    +setTitulo(titulo: String): void
-    +getDuracionEnMinutos(): int
-    +setDuracionEnMinutos(duracionEnMinutos: int): void
-    +getGenero(): String
-    +setGenero(genero: String): void
-    +getId(): int
-    +abstract mostrarDetalles(): void
-}
-
-class Pelicula extends ContenidoAudiovisual {
-    -String estudio
-    +Pelicula(titulo: String, duracionEnMinutos: int, genero: String, estudio: String)
-    +getEstudio(): String
-    +setEstudio(estudio: String): void
-    +agregarActor(actor: Actor): void
-    +mostrarDetalles(): void
-}
-
-class SerieDeTV extends ContenidoAudiovisual {
-    -int temporadas
-    +SerieDeTV(titulo: String, duracionEnMinutos: int, genero: String, temporadas: int)
-    +getTemporadas(): int
-    +setTemporadas(temporadas: int): void
-    +agregarTemporada(temporada: Temporada): void
-    +mostrarDetalles(): void
-}
-
-class Documental extends ContenidoAudiovisual {
-    -String tema
-    +Documental(titulo: String, duracionEnMinutos: int, genero: String, tema: String)
-    +getTema(): String
-    +setTema(tema: String): void
-    +agregarInvestigador(investigador: Investigador): void
-    +mostrarDetalles(): void
-}
-
-class Concierto extends ContenidoAudiovisual {
-    -String artistaPrincipal
-    -String lugar
-    -List<String> cancionesInterpretadas
-    +Concierto(titulo: String, duracionEnMinutos: int, genero: String, artistaPrincipal: String, lugar: String)
-    +getArtistaPrincipal(): String
-    +setArtistaPrincipal(artistaPrincipal: String): void
-    +getLugar(): String
-    +setLugar(lugar: String): void
-    +agregarCancion(cancion: String): void
-    +getCancionesInterpretadas(): List<String>
-    +mostrarDetalles(): void
-}
-
-class Podcast extends ContenidoAudiovisual {
-    -String host
-    -int numeroEpisodiosTotales
-    -List<String> temasPrincipales
-    +Podcast(titulo: String, duracionEnMinutos: int, genero: String, host: String, numeroEpisodiosTotales: int)
-    +getHost(): String
-    +setHost(host: String): void
-    +getNumeroEpisodiosTotales(): int
-    +setNumeroEpisodiosTotales(numeroEpisodiosTotales: int): void
-    +agregarTema(tema: String): void
-    +getTemasPrincipales(): List<String>
-    +mostrarDetalles(): void
-}
-
-class Actor {
-    -String nombre
-    -String nacionalidad
-    +Actor(nombre: String, nacionalidad: String)
-    +getNombre(): String
-    +setNombre(nombre: String): void
-    +getNacionalidad(): String
-    +setNacionalidad(nacionalidad: String): void
-    +mostrarDetalles(): void
-}
-
-class Temporada {
-    -int numeroTemporada
-    -int numeroEpisodios
-    -List<String> titulosEpisodios
-    +Temporada(numeroTemporada: int, numeroEpisodios: int)
-    +getNumeroTemporada(): int
-    +setNumeroTemporada(numeroTemporada: int): void
-    +getNumeroEpisodios(): int
-    +setNumeroEpisodios(numeroEpisodios: int): void
-    +agregarEpisodio(tituloEpisodio: String): void
-    +getTitulosEpisodios(): List<String>
-    +mostrarDetalles(): void
-}
-
-class Investigador {
-    -String nombre
-    -String especialidad
-    +Investigador(nombre: String, especialidad: String)
-    +getNombre(): String
-    +setNombre(nombre: String): void
-    +getEspecialidad(): String
-    +setEspecialidad(especialidad: String): void
-    +mostrarDetalles(): void
-}
-
-' Relaciones de Herencia
-ContenidoAudiovisual <|-- Pelicula
-ContenidoAudiovisual <|-- SerieDeTV
-ContenidoAudiovisual <|-- Documental
-ContenidoAudiovisual <|-- Concierto
-ContenidoAudiovisual <|-- Podcast
-
-' Relaciones de Asociación/Agregación
-Pelicula "1" -- "*" Actor : tiene >
-SerieDeTV "1" o-- "*" Temporada : contiene >
-Documental "1" -- "*" Investigador : involucra >
-Concierto "1" o-- "*" CancionesInterpretadas : interpreta >
-
-@enduml
+Se ha actualizado el diagrama de clases para reflejar el estado actual del proyecto, incluyendo las nuevas clases y sus relaciones.
