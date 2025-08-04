@@ -47,7 +47,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version> <!-- Usamos la misma versión que falló -->
+                <version>3.2.5</version>
                 <configuration>
                     <!-- LÍNEA CLAVE: Pasa este argumento a la JVM que ejecuta las pruebas -->
                     <argLine>--enable-preview</argLine>
